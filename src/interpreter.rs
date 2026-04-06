@@ -152,7 +152,7 @@ impl Interpreter {
     fn eval_expr(&mut self, expr: &Expr) -> Result<Value, String> {
         match expr {
             Expr::Number(n) => Ok(Value::Number(*n)),
-            Expr::String(s) => Ok(Value::String(self.interpolate_string(s)?)),
+            Expr::String(s) => Ok(Value::String(self.interpolate_string_mut(s)?)),
             Expr::Boolean(b) => Ok(Value::Boolean(*b)),
             Expr::Null => Ok(Value::Null),
             Expr::Array(elements) => {
@@ -200,7 +200,7 @@ impl Interpreter {
         }
     }
 
-    fn interpolate_string(&self, s: &str) -> Result<String, String> {
+    fn interpolate_string_mut(&mut self, s: &str) -> Result<String, String> {
         let mut result = String::new();
         let mut chars = s.chars().peekable();
 
@@ -239,13 +239,19 @@ impl Interpreter {
         Ok(result)
     }
 
-    fn eval_expr_from_string(&self, s: &str) -> Result<Value, String> {
-        if s.chars().all(|c| c.is_ascii_digit() || c == '.' || c == '-') {
-            if let Ok(n) = s.parse::<f64>() {
-                return Ok(Value::Number(n));
+    fn eval_expr_from_string(&mut self, s: &str) -> Result<Value, String> {
+        use crate::lexer::Lexer;
+        use crate::parser::Parser;
+        let mut lexer = Lexer::new(s);
+        let tokens = lexer.tokenize()?;
+        let mut parser = Parser::new(tokens);
+        let mut program = parser.parse()?;
+        if program.len() == 1 {
+            if let Stmt::Expr(expr) = program.remove(0) {
+                return self.eval_expr(&expr);
             }
         }
-        self.get_variable(s)
+        Err(format!("補間式の解析に失敗: {}", s))
     }
 
     fn eval_binary_op(&self, left: Value, op: BinaryOperator, right: Value) -> Result<Value, String> {
@@ -423,8 +429,12 @@ impl Interpreter {
                     let random = ((rng % ((max - min + 1) as u64)) as i64) + min;
                     Ok(Value::Number(random as f64))
                 } else if name == "追加" {
+                    // 追加は変数を直接変更する必要があるため、第1引数の変数名も受け取る
+                    // 使い方: 追加(配列, 値) → 配列に値を追加して返す
                     if let Value::Array(mut a) = args[0].clone() {
                         a.push(args[1].clone());
+                        // 呼び出し元で代入が必要: 配列 = 追加(配列, 値)
+                        // または自動代入をサポート
                         Ok(Value::Array(a))
                     } else {
                         Err("追加の第1引数は配列である必要があります".to_string())

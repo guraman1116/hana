@@ -5,7 +5,6 @@ pub enum TokenType {
     // リテラル
     Number(f64),
     String(String),
-    Boolean(bool),
     Null,
 
     // 識別子
@@ -26,22 +25,24 @@ pub enum TokenType {
     GreaterEqual,
 
     // キーワード
-    If,
-    Elif,
-    Else,
-    For,         // 回繰り返す用
-    While,
-    Of,          // の（プロパティアクセス）
-    LoopCount,   // 回数
-    Function,    // とは
-    Return,
-    Print,
-    Input,
-    And,
-    Or,
-    Not,
-    True,
-    False,
+    If,           // もし
+    Then,         // なら
+    Elif,         // そうでなければ
+    Else,         // 違えば
+    For,          // 回（繰り返し回数）
+    Repeat,       // 繰り返す
+    Of,           // の（プロパティアクセス）
+    While,        // の間
+    LoopCount,    // 回数
+    Function,     // とは
+    Return,       // 戻す
+    Print,        // 表示
+    Input,        // 聞く
+    And,          // そして
+    Or,           // または
+    Not,          // ではない
+    True,         // 真
+    False,        // 偽
 
     // 区切り子
     Colon,
@@ -50,7 +51,6 @@ pub enum TokenType {
     LeftBracket,
     RightBracket,
     Comma,
-    Dot,         // 配列区切りの。用
 
     // その他
     Newline,
@@ -77,7 +77,6 @@ impl fmt::Display for TokenType {
         match self {
             TokenType::Number(n) => write!(f, "{}", n),
             TokenType::String(s) => write!(f, "\"{}\"", s),
-            TokenType::Boolean(b) => write!(f, "{}", b),
             TokenType::Null => write!(f, "なし"),
             TokenType::Identifier(s) => write!(f, "{}", s),
             TokenType::Plus => write!(f, "+"),
@@ -93,11 +92,13 @@ impl fmt::Display for TokenType {
             TokenType::Greater => write!(f, ">"),
             TokenType::GreaterEqual => write!(f, ">="),
             TokenType::If => write!(f, "もし"),
+            TokenType::Then => write!(f, "なら"),
             TokenType::Elif => write!(f, "そうでなければ"),
             TokenType::Else => write!(f, "違えば"),
             TokenType::For => write!(f, "回"),
-            TokenType::While => write!(f, "の間"),
+            TokenType::Repeat => write!(f, "繰り返す"),
             TokenType::Of => write!(f, "の"),
+            TokenType::While => write!(f, "の間"),
             TokenType::LoopCount => write!(f, "回数"),
             TokenType::Function => write!(f, "とは"),
             TokenType::Return => write!(f, "戻す"),
@@ -114,7 +115,6 @@ impl fmt::Display for TokenType {
             TokenType::LeftBracket => write!(f, "["),
             TokenType::RightBracket => write!(f, "]"),
             TokenType::Comma => write!(f, ","),
-            TokenType::Dot => write!(f, "."),
             TokenType::Newline => write!(f, "\\n"),
             TokenType::Indent => write!(f, "<indent>"),
             TokenType::Dedent => write!(f, "<dedent>"),
